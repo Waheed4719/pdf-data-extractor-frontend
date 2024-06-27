@@ -10,6 +10,7 @@ function App() {
   const [urlToPDF, setUrlToPDF] = useState(null);
   const [excelFile, setExcelFile] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [downloadURL, setDownloadURL] = useState(false);
 
   useEffect(() => {
@@ -39,6 +40,7 @@ function App() {
   };
 
   const handleSubmit = (file, endpoint) => {
+    setLoading(true);
     const formData = new FormData();
     formData.append(endpoint === "upload-xlFile" ? "xlFile" : "pdfFile", file);
     if (endpoint === "upload-xlFile")
@@ -56,7 +58,8 @@ function App() {
           setDownloadURL(`${SERVER_URL}/${data.xlsxURL}`);
         }
         console.log(data);
-      });
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -96,6 +99,7 @@ function App() {
             handleFileUpload={(files) => setExcelFile(files[0])}
             handleSubmit={() => handleSubmit(excelFile, "upload-xlFile")}
             downloadURL={downloadURL}
+            loading={loading}
           />
         )}
       </div>
@@ -109,6 +113,7 @@ function FileSection({
   handleFileUpload,
   handleSubmit,
   downloadURL,
+  loading
 }) {
   return (
     <div
@@ -153,6 +158,7 @@ function FileSection({
         <Button onClick={handleSubmit}>Submit</Button>
         {console.log("downloadURL", downloadURL)}
         {downloadURL && <a href={downloadURL}>Download Updated Excel</a>}
+        {loading && <p>Loading Download Link...</p>}
       </div>
     </div>
   );
