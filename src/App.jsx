@@ -4,12 +4,13 @@ import AdobeViewer from "./components/AdobeViewer";
 import Button from "./components/Button";
 import Dropzone from "./components/Dropzone";
 
-const SERVER_URL = "http://localhost:5200";
+const SERVER_URL = import.meta.env.VITE_BACKEND_URL;
 
 function App() {
   const [urlToPDF, setUrlToPDF] = useState(null);
   const [excelFile, setExcelFile] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
+  const [downloadURL, setDownloadURL] = useState(false);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -40,7 +41,8 @@ function App() {
   const handleSubmit = (file, endpoint) => {
     const formData = new FormData();
     formData.append(endpoint === "upload-xlFile" ? "xlFile" : "pdfFile", file);
-    if (endpoint === "upload-xlFile") formData.append("pdfFile", urlToPDF.split("/").slice(-1)?.[0]);
+    if (endpoint === "upload-xlFile")
+      formData.append("pdfFile", urlToPDF.split("/").slice(-1)?.[0]);
     fetch(`${SERVER_URL}/${endpoint}`, {
       method: "POST",
       body: formData,
@@ -50,6 +52,8 @@ function App() {
         if (endpoint === "upload-pdf") {
           setUrlToPDF(`${SERVER_URL}/${data.file.filename}`);
           updateUrlParam(data.file.filename);
+        } else {
+          setDownloadURL(`${SERVER_URL}/${data.xlsxURL}`);
         }
         console.log(data);
       });
@@ -85,18 +89,27 @@ function App() {
           handleFileUpload={handleFileUpload}
           handleSubmit={() => handleSubmit(pdfFile, "upload-pdf")}
         />
-        <FileSection
-          title="Select Excel File"
-          file={excelFile}
-          handleFileUpload={(files) => setExcelFile(files[0])}
-          handleSubmit={() => handleSubmit(excelFile, "upload-xlFile")}
-        />
+        {urlToPDF && (
+          <FileSection
+            title="Select Excel File"
+            file={excelFile}
+            handleFileUpload={(files) => setExcelFile(files[0])}
+            handleSubmit={() => handleSubmit(excelFile, "upload-xlFile")}
+            downloadURL={downloadURL}
+          />
+        )}
       </div>
     </div>
   );
 }
 
-function FileSection({ title, file, handleFileUpload, handleSubmit }) {
+function FileSection({
+  title,
+  file,
+  handleFileUpload,
+  handleSubmit,
+  downloadURL,
+}) {
   return (
     <div
       style={{
@@ -131,7 +144,16 @@ function FileSection({ title, file, handleFileUpload, handleSubmit }) {
           ? `File Name: ${file.name}`
           : `No ${title.split(" ")[1]} file selected!`}
       </div>
-      <Button onClick={handleSubmit}>Submit</Button>
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+        }}
+      >
+        <Button onClick={handleSubmit}>Submit</Button>
+        {console.log("downloadURL", downloadURL)}
+        {downloadURL && <a href={downloadURL}>Download Updated Excel</a>}
+      </div>
     </div>
   );
 }

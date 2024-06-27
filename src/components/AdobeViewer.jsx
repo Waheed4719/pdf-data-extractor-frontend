@@ -54,7 +54,8 @@ const AdobeViewer = ({ urlToPDF }) => {
       console.log("Adobe DC View SDK is ready");
       const AdobeDC = window.AdobeDC;
       const adobeDCView = new AdobeDC.View({
-        clientId: "38bb15b9b72f4171b337bf0739f078c4",
+        // eslint-disable-next-line no-undef
+        clientId: import.meta.env.VITE_REACT_ADOBE_DC_CLIENT_ID,
         divId: "adobe-dc-view",
       });
       const previewFilePromise = adobeDCView.previewFile(
